@@ -7,17 +7,16 @@ var idRegexp = /providerid=(\d+)/;
 function getDetailsFromBody(body) {
   var documentHalfWithLocations = body.split('var providerlist')[0];
   var providerChunks = documentHalfWithLocations.split('</a>');
-  var details = [];
+  var detailsForIds = {};
   
   providerChunks.forEach(function addDetail(chunk) {
     var detail = extractDataFromChunk(chunk);
     if (detail) {
-      details.push(detail);
+      detailsForIds[detail.providerid] = detail;
     }
   });
 
-  return details;
-  //.map(assembleProviderDetailLink);
+  return detailsForIds;
 }
 
 function extractDataFromChunk(chunk) {
