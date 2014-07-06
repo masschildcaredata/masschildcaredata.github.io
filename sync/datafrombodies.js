@@ -3,6 +3,8 @@ var fs = require('fs');
 var cheerio = require('cheerio');
 
 var bodiesfilelocation = process.argv[2];
+var JSONArrayMode = (process.argv[3] === '--JSON-array');
+
 if (!bodiesfilelocation) {
   process.stderr.write('Usage: node datafrombodies.js [JSON file containing array of web page bodies]\n');
   process.exit();
@@ -37,6 +39,14 @@ q.awaitAll(function presentResults(error, results) {
     process.stderr.write(error);
   }
   else {
-    process.stdout.write(JSON.stringify(results, null, '  '));
+    if (JSONArrayMode) {
+      process.stdout.write(JSON.stringify(results, null, '  '));
+    }
+    else {
+      // Write as line-separated JSON.
+      results.forEach(function writeLine(result) {
+        process.stdout.write(JSON.stringify(result) + '\n');
+      });
+    }
   }
 });
