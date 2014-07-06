@@ -1,3 +1,6 @@
+data/listings.txt:
+	node sync/getproviderlistings.js > data/listings.txt
+
 data/details.json:
 	node sync/basedetailsget.js > data/details.json
 
