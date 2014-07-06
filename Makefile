@@ -1,3 +1,6 @@
+data/details.json:
+	node sync/basedetailsget.js > data/details.json
+
 data/links.json:
 	node sync/linkget.js > data/links.json
 
