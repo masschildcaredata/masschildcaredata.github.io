@@ -3,19 +3,31 @@ var fs = require('fs');
 var cheerio = require('cheerio');
 
 var bodiesfilelocation = process.argv[2];
-var JSONArrayMode = (process.argv[3] === '--JSON-array');
+var detailsfilelocation = process.argv[3];
+var JSONArrayMode = (process.argv[4] === '--JSON-array');
 
 if (!bodiesfilelocation) {
-  process.stderr.write('Usage: node datafrombodies.js [JSON file containing array of web page bodies]\n');
+  process.stderr.write('Usage: node datafrombodies.js [JSON file containing array of objects containing ids and web page bodies] [JSON file mapping lat/long details to provider ids]\n');
   process.exit();
 }
 
 var q = queue();
 
-function getDataFromBody(body, done) {
+function getDataFromBody(providerid, body, done) {
   $ = cheerio.load(body);
   var rows = $('tr');
-  var data = {};
+  var data = {
+    providerid: providerid
+  };
+
+  var details = detailsDict[providerid];
+  if ('lat' in details) {
+    data.lat = details.lat;
+  }
+  if ('long' in details) {
+    data.long = details.long;
+  }
+
   rows.each(function saveKeyAndValue(i, row) {
     var cols = $('td', row);
     if (cols.length === 2) {
@@ -25,16 +37,20 @@ function getDataFromBody(body, done) {
   done(null, data);
 }
 
-function queueDataExtraction(body) {
-  q.defer(getDataFromBody, body);
+function queueDataExtraction(bodyContainer) {
+  q.defer(getDataFromBody, bodyContainer.providerid, bodyContainer.body);
 }
 
 var bodiesString = fs.readFileSync(bodiesfilelocation);
 var bodylist = JSON.parse(bodiesString);
+var detailsString = fs.readFileSync(detailsfilelocation);
+var detailsDict = JSON.parse(detailsString);
 
+debugger;
 bodylist.forEach(queueDataExtraction);
 
 q.awaitAll(function presentResults(error, results) {
+  debugger;
   if (error) {
     process.stderr.write(error);
   }

@@ -7,8 +7,8 @@ data/links.json: data/details.json
 data/bodies.json: data/details.json
 	node sync/getbodiesfordetails.js data/details.json > data/bodies.json
 
-data/providerdata.json: data/bodies.json
-	node sync/datafrombodies data/bodies.json > data/providerdata.json
+data/providerdata.json: data/bodies.json data/details.json
+	node sync/datafrombodies data/bodies.json data/details.json > data/providerdata.json
 
 clean-data:
 	rm data/*
