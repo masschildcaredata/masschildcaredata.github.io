@@ -14,7 +14,6 @@ var rootQueryURL ='http://www.eec.state.ma.us/ChildCareSearch/Handler1.ashx?lat=
 var idRegexp = /providerid=(\d+)/;
 
 function getDetailsFromHTML(htmlString) {
-  debugger;
   $ = cheerio.load(htmlString);
   var links = $('a[href^="ProvDetail.aspx"]');
 
