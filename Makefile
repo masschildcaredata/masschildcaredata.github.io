@@ -16,4 +16,6 @@ data/providerdata.json: data/bodies.json data/details.json
 clean-data:
 	rm data/*
 
-# cat ../providerdata.json | dat --json
+update-dat: data/providerdata.json
+	cd data/dat && cat ../providerdata.json | dat import --json --primary=providerid
+	cd ../..
