@@ -31,7 +31,11 @@ function getDataFromBody(providerid, body, done) {
   rows.each(function saveKeyAndValue(i, row) {
     var cols = $('td', row);
     if (cols.length === 2) {
-      data[$(cols[0]).text().trim()] = $(cols[1]).text().trim();
+      var key = $(cols[0]).text();
+      // Get rid of ending colons and spaces.
+      key = key.replace(/[\s:]+$/g, '');
+      var value = $(cols[1]).text().trim();
+      data[key] = value;
     }
   });
   done(null, data);
