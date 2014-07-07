@@ -1,52 +1,53 @@
 var request = require('request');
+var cheerio = require('cheerio');
+var fs = require('fs');
+
+var listingsfilelocation = process.argv[2];
+
+if (!listingsfilelocation) {
+  process.stderr.write('Usage: node basedetailsget.js [file containing aggregated listings web pages for childcare providers]\n');
+  process.exit();
+}
 
 var rootQueryURL ='http://www.eec.state.ma.us/ChildCareSearch/Handler1.ashx?lat=42.39326095581055%20&long=-71.13453674316406&r=500&programtype=ALL%20CARE';
-var locationRegexp = /VELatLong\(([\d\.-]+),([\d\.-]+)/;
+// var locationRegexp = /VELatLong\(([\d\.-]+),([\d\.-]+)/;
 var idRegexp = /providerid=(\d+)/;
 
-function getDetailsFromBody(body) {
-  var documentHalfWithLocations = body.split('var providerlist')[0];
-  var providerChunks = documentHalfWithLocations.split('</a>');
+function getDetailsFromHTML(htmlString) {
+  debugger;
+  $ = cheerio.load(htmlString);
+  var links = $('a[href^="ProvDetail.aspx"]');
+
   var detailsForIds = {};
   
-  providerChunks.forEach(function addDetail(chunk) {
-    var detail = extractDataFromChunk(chunk);
-    if (detail) {
-      detailsForIds[detail.providerid] = detail;
+  function addDetail(link) {
+    var href = $(link).attr('href');
+    var id = extractIdFromChunk(href);
+    if (id) {      
+      detailsForIds[id] = {
+        providerid: id
+      };
+      // TODO: Add geocodes.
     }
-  });
+  }
+
+  for (var i = 0; i < links.length; ++i) {
+    addDetail(links[i]);
+  }
 
   return detailsForIds;
 }
 
-function extractDataFromChunk(chunk) {
-  var data = null;
+function extractIdFromChunk(chunk) {
+  var id = null;
   var idMatch = chunk.match(idRegexp);
   if (idMatch) {
-    data = {
-      providerid: idMatch[1]
-    };
-
-    var locationMatch = chunk.match(locationRegexp);
-    if (locationMatch) {
-      data.lat = locationMatch[1];
-      data.long = locationMatch[2];
-    }
+    id = idMatch[1];
   }
-  return data;
+  return id;
 }
 
-function assembleProviderDetailLink(providerId) {
-  return 'http://www.eec.state.ma.us/ChildCareSearch/ProvDetail.aspx?providerid=' + 
-  providerId;
-}
+var htmlString = fs.readFileSync(listingsfilelocation);
+var details = getDetailsFromHTML(htmlString);
+process.stdout.write(JSON.stringify(details, null, '  '));
 
-request(rootQueryURL, function done(error, response, body) {
-  if (error) {
-    process.stderr.write(error);
-  }
-  else {
-    var links = getDetailsFromBody(body);
-    process.stdout.write(JSON.stringify(links, null, '  '));
-  }
-});
