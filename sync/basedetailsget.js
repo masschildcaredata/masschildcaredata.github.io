@@ -1,4 +1,3 @@
-var request = require('request');
 var cheerio = require('cheerio');
 var fs = require('fs');
 
@@ -9,8 +8,6 @@ if (!listingsfilelocation) {
   process.exit();
 }
 
-var rootQueryURL ='http://www.eec.state.ma.us/ChildCareSearch/Handler1.ashx?lat=42.39326095581055%20&long=-71.13453674316406&r=500&programtype=ALL%20CARE';
-// var locationRegexp = /VELatLong\(([\d\.-]+),([\d\.-]+)/;
 var idRegexp = /providerid=(\d+)/;
 
 function getDetailsFromHTML(htmlString) {
