@@ -10,6 +10,12 @@ Installation
     cd masschildcaredata.github.io
     npm install
 
+Then, create a config.js file in the project root containing your [MapQuest API key](http://developer.mapquest.com/) like so:
+
+    module.exports = {
+      mapquestAppKey: 'numberslettersandsymbols'
+    };
+
 Usage
 -----
 

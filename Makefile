@@ -13,6 +13,9 @@ data/bodies.json: data/details.json
 data/providerdata.json: data/bodies.json data/details.json
 	node sync/datafrombodies data/bodies.json data/details.json > data/providerdata.json
 
+data/geocodedproviders.json: data/providerdata.json
+	node sync/geodataget.js data/providerdata.json > data/geocodedproviders.json
+
 clean-data:
 	rm data/*
 
