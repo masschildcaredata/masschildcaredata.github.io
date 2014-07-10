@@ -22,3 +22,9 @@ clean-data:
 update-dat: data/geocodedproviders.json
 	cd data/dat && cat ../geocodedproviders.json | dat import --json --primary=providerid
 	cd ../..
+
+api/search-index/datindex.db: data/dat/.dat
+	cp -r data/dat/.dat api/search-index/datindex.db
+
+sync-index: api/search-index/datindex.db
+	node api/search-index/indexdatdb.js data/dat api/search-index/dat.db
