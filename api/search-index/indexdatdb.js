@@ -15,7 +15,7 @@ indexStream._write = function indexRow(row, enc, next) {
   next();
 };
 
-var datdb = dat('../../data/dat/', function useDat(error) {
+var datdb = dat(datlocation, function useDat(error) {
   if (error) {
     console.log(error);
   }
