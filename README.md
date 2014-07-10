@@ -19,11 +19,11 @@ Then, create a config.js file in the project root containing your [MapQuest API 
 Usage
 -----
 
-If you just want the data, [here's the JSON file](http://masschildcaredata.github.io/data/providerdata.json).
+If you just want the data, [here's the JSON file](http://masschildcaredata.github.io/data/geocodedproviders.json).
 
 If you want to set up an instance of this locally, after installing, kick off a sync to the EEC site like so:
 
-    make data/providerdata.json
+    make data/geocodedproviders.json
 
 License
 -------
