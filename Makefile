@@ -16,15 +16,18 @@ data/providerdata.json: data/bodies.json data/details.json
 data/geocodedproviders.json: data/providerdata.json
 	node sync/geodataget.js data/providerdata.json > data/geocodedproviders.json
 
+data/finda-data.json: data/geocodedproviders.json
+	node sync/finda-data-format.js data/geocodedproviders.json > data/finda-data.json
+
 clean-data:
 	rm data/*
 
-update-dat: data/geocodedproviders.json
-	cd data/dat && cat ../geocodedproviders.json | dat import --json --primary=providerid
-	cd ../..
+# update-dat: data/geocodedproviders.json
+# 	cd data/dat && cat ../geocodedproviders.json | dat import --json --primary=providerid
+# 	cd ../..
 
-api/search-index/datindex.db: data/dat/.dat
-	cp -r data/dat/.dat api/search-index/datindex.db
+# api/search-index/datindex.db: data/dat/.dat
+# 	cp -r data/dat/.dat api/search-index/datindex.db
 
-sync-index: api/search-index/datindex.db
-	node api/search-index/indexdatdb.js data/dat api/search-index/dat.db
+# sync-index: api/search-index/datindex.db
+# 	node api/search-index/indexdatdb.js data/dat api/search-index/dat.db
