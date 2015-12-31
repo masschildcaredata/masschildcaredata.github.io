@@ -31,3 +31,6 @@ clean-data:
 
 # sync-index: api/search-index/datindex.db
 # 	node api/search-index/indexdatdb.js data/dat api/search-index/dat.db
+
+test:
+	node tests/provider-to-finda-data-point-tests.js 
