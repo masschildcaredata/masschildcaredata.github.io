@@ -1,4 +1,10 @@
 function providerToFindaDataPoint(provider) {
+  if (!pathExistsInObject(['geodata', 'latLng', 'lng'], provider) ||
+    !pathExistsInObject(['geodata', 'latLng', 'lat'], provider)) {
+
+    return null;
+  }
+
   var dataPoint = {
     "type": "Feature",
     "geometry": {
@@ -17,4 +23,14 @@ function providerToFindaDataPoint(provider) {
   return dataPoint;
 }
 
+function pathExistsInObject(path, object) {
+  var current = object;
+  return path.every(segmentExists, true);
+  
+  function segmentExists(segment) {
+    current = current[segment];
+    return current;
+  }
+}
+      
 module.exports = providerToFindaDataPoint;
