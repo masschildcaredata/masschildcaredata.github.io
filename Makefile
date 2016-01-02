@@ -19,6 +19,9 @@ data/geocodedproviders.json: data/providerdata.json
 data/finda-data.json: data/geocodedproviders.json
 	node sync/get-finda-data.js data/geocodedproviders.json > data/finda-data.json
 
+data/geocoded-providers-summarized.json: data/geocodedproviders.json
+	node sync/summarize-geocoded-providers.js data/geocodedproviders.json > data/geocoded-providers-summarized.json
+
 clean-data:
 	rm data/*
 
