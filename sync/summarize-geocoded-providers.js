@@ -6,8 +6,15 @@ var ldj = require('ldjson-stream');
 var providerdatalocation = process.argv[2];
 
 if (!providerdatalocation) {
-  process.stderr.write('Usage: node summarize-geocoded-providers.js [line-separated provider data JSON file]\n');
+  process.stderr.write('Usage: node summarize-geocoded-providers.js ' + 
+    '<line-separated provider data JSON file> [--ldjson]\n');
   process.exit();
+}
+
+var ldjsonMode = false;
+
+if (process.argv.length > 3 && process.argv[3] === '--ldjson') {
+  ldjsonMode = true;
 }
 
 var count = 0;
@@ -34,7 +41,16 @@ function writeFooter() {
 }
 
 function dataPointToLine(dataPoint, encoding, done) {
-  this.push(JSON.stringify(dataPoint, null, '  ') + ',\n');
+  var serialized;
+  if (ldjsonMode) {
+    serialized = JSON.stringify(dataPoint);
+  }
+  else {
+    serialized = JSON.stringify(dataPoint, null, '  ');
+    serialized += ',';
+  }
+  serialized += '\n';
+  this.push(serialized);
   done();
 }
 
@@ -47,7 +63,9 @@ function streamProvidersToSummaries() {
   var summaryToLineStream = through(streamOpts, dataPointToLine);
 
   var readStream = fs.createReadStream(providerdatalocation);
-  readStream.on('end', writeFooter);
+  if (!ldjsonMode) {
+    readStream.on('end', writeFooter);
+  }
 
   readStream
     .pipe(ldj.parse())
@@ -56,6 +74,8 @@ function streamProvidersToSummaries() {
     .pipe(process.stdout);
 }
 
-writeHeader();
-streamProvidersToSummaries();
+if (!ldjsonMode) {
+  writeHeader();
+}
 
+streamProvidersToSummaries();
