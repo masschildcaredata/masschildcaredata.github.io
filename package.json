@@ -28,6 +28,7 @@
     "cheerio": "~0.17.0",
     "ldjson-stream": "^1.2.1",
     "lodash": "~2.4.1",
+    "mapquest": "jimkang/mapquest",
     "queue-async": "~1.0.7",
     "request": "~2.36.0",
     "split": "~0.3.0",

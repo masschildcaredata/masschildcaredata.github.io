@@ -10,12 +10,6 @@ Installation
     cd masschildcaredata.github.io
     npm install
 
-Then, create a config.js file in the project root containing your [MapQuest API key](http://developer.mapquest.com/) like so:
-
-    module.exports = {
-      mapquestAppKey: 'numberslettersandsymbols'
-    };
-
 Usage
 -----
 
@@ -23,7 +17,9 @@ If you just want the data, [here's the JSON file](http://masschildcaredata.githu
 
 If you want to set up an instance of this locally, after installing, kick off a sync to the EEC site like so:
 
-    make data/geocodedproviders.json
+    MAPQUEST_API_KEY=<your key> make data/geocodedproviders.json
+
+[You can get your MapQuest API key here.](http://developer.mapquest.com/)
 
 License
 -------

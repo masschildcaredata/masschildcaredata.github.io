@@ -5,8 +5,8 @@ function summarizeGeocodedProvider(provider) {
 
   return {
     providerid: provider.providerid,
-    lat: provider.geodata.latLng.lat,
-    lng: provider.geodata.latLng.lng
+    lat: provider.lat,
+    lng: provider.lng
   };
 }
 

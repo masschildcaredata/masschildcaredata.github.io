@@ -1,9 +1,8 @@
-var request = require('request');
 var fs = require('fs');
-var split = require('split');
-var config = require('../config');
-var _ = require('lodash');
-var queue = require('queue-async');
+var mapquest = require('mapquest');
+var ldj = require('ldjson-stream');
+var through = require('through2');
+var assembleAddressForProvider = require('./assemble-address-for-provider');
 
 var providerdatalocation = process.argv[2];
 
@@ -12,129 +11,72 @@ if (!providerdatalocation) {
   process.exit();
 }
 
-
-var rootQueryURL = 'http://www.mapquestapi.com/geocoding/v1/address?key=' + 
-  config.mapquestAppKey;
-
-function createGeocodeQueryURL(address) {
-  return rootQueryURL + 
-    '&maxResults=1' + 
-    '&location=' + encodeURIComponent(address);
+if (!process.env.MAPQUEST_API_KEY) {
+  process.stderr.write(
+    'MAPQUEST_API_KEY environment variable must be set.\n' +
+    'e.g. MAPQUEST_API_KEY=<your key> node geodataget.js  [line-separated provider data JSON file]\n'
+  );
+  process.exit();
 }
 
-// var locationRegexp = /VELatLong\(([\d\.-]+),([\d\.-]+)/;
+var geocodeStreamOpts = {
+  objectMode: true
+};
 
-function logToStderr(message) {
-  process.stderr.write(message + '\n');
-}
+var geocodeStream = through(geocodeStreamOpts, addGeocode);
+// geocodeStream.on('error', logError);
 
-function getDetailsFromHTML(htmlString) {
-  $ = cheerio.load(htmlString);
-  var links = $('a[href^="ProvDetail.aspx"]');
+fs.createReadStream(providerdatalocation)
+  .pipe(ldj.parse())
+  .pipe(geocodeStream)
+  .pipe(ldj.serialize())
+  .pipe(process.stdout);
 
-  var detailsForIds = {};
-  
-  function addDetail(link) {
-    var href = $(link).attr('href');
-    var id = extractIdFromChunk(href);
-    if (id) {      
-      detailsForIds[id] = {
-        providerid: id
-      };
-      // TODO: Add geocodes.
-    }
-  }
-
-  for (var i = 0; i < links.length; ++i) {
-    addDetail(links[i]);
-  }
-
-  return detailsForIds;
-}
-
-function extractIdFromChunk(chunk) {
-  var id = null;
-  var idMatch = chunk.match(idRegexp);
-  if (idMatch) {
-    id = idMatch[1];
-  }
-  return id;
-}
-
-function addGeoDataToProviderEntry(entry) {
-  if (typeof entry.Address !== 'string') {
-    logToStderr('No address found for provider ' + entry.providerid);
-  }
-  else {
-    var url = createGeocodeQueryURL(entry.Address);
-    request(url, {json: 'json'}, 
-      _.curry(recordGeocodeResponse)(entry)
+function addGeocode(p, enc, done) {
+  var address = assembleAddressForProvider(p);
+  if (address) {
+    mapquest.geocode(
+      {
+        address: address
+      },
+      addResults
     );
   }
-}
-
-function recordGeocodeResponse(entry, error, response, body) {
-  var problem = checkForProblemInResponse(entry, error, response, body);
-  if (!problem) {
-    entry.geodata = body.results[0].locations[0];
-  }
-  process.stdout.write(JSON.stringify(entry) + '\n');
-}
-
-function checkForProblemInResponse(entry, error, response, body) {
-  var problem;
-  if (error) {
-    problem = error;
-  }
-  else if (response.statusCode !== 200) {
-    problem = 'Status code: ' + response.statusCode;
-  }
-  else if (!Array.isArray(body.results)) {
-    problem = 'Response does not have an array of results.';
-  }
-  else if (body.results.length < 1) {
-    problem = 'Response has an empty results array.';
-  }
-  else if (!Array.isArray(body.results[0].locations)) {
-    problem = 'Response does not have an array of locations.';
-  }
-  else if (body.results[0].locations.length < 1) {
-    problem = 'Response has an empty locations array.';
+  else {
+      logError(new Error('No address for providerid: ' + p.providerid));
+    done();
   }
 
-  if (problem) {
-    var problemMessage = 'Problem while getting geocode for provider ' + 
-      entry.providerid + ': ' + problem;
-    entry.geodata = {
-      problem: problemMessage
-    };
-    logToStderr(problemMessage);
-  }
-  return problem;
-}
-
-function start() {
-  // var q = queue(8);
-  // q.awaitAll(function done(error) {
-  //   if (error) {
-  //     logToStderr('Error: ' + error);
-  //   }
-  //   else {
-  //     logToStderr('Completed!');
-  //   }
-  // });      
-
-  fs.createReadStream(providerdatalocation)
-    .pipe(split())
-    .on('data', function processLine(line) {
-      if (line.length > 0) {
-        addGeoDataToProviderEntry(JSON.parse(line));
-        // console.log(line);
+  function addResults(error, location) {
+    if (error) {
+      // Log the error, but don't stop the stream.
+      logError(error);
+      done();
+    }
+    else {
+      var lat = location.latLng.lat;
+      var lng = location.latLng.lng;
+      if (latLngIsOutsideOfMass(lat, lng)) {
+        // Log the error, but don't stop the stream.
+        logError(new Error('Got geocode ' + lat + ', ' + lng +
+          ' outside of Mass for address: ' + address +
+          ', providerid: ' + p.providerid
+        ));
+        done();
       }
-    })
+      else {
+        p.lat = location.latLng.lat;
+        p.lng = location.latLng.lng;
+        done(null, p);
+      }
+    }
+  }
 }
 
-// var details = getDetailsFromHTML(htmlString);
-// process.stdout.write(JSON.stringify(details, null, '  '));
-start();
+function logError(error) {
+  console.error(error);  
+}
 
+function latLngIsOutsideOfMass(lat, lng) {
+  return lng < -74 || lng > -70 || lat < 41 || lat > 43;
+}

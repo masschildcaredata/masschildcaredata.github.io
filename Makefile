@@ -14,7 +14,7 @@ data/providerdata.json: data/bodies.json data/details.json
 	node sync/datafrombodies data/bodies.json data/details.json > data/providerdata.json
 
 data/geocodedproviders.json: data/providerdata.json
-	node sync/geodataget.js data/providerdata.json > data/geocodedproviders.json
+	(node sync/geodataget.js data/providerdata.json > data/geocodedproviders.json) >& data/geocode_errors.txt
 
 data/finda-data.json: data/geocodedproviders.json
 	node sync/get-finda-data.js data/geocodedproviders.json > data/finda-data.json
