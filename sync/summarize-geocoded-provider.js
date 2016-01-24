@@ -1,5 +1,5 @@
 function summarizeGeocodedProvider(provider) {
-  if (!pathExistsInObject(['geodata', 'latLng'], provider)) {
+  if (!provider.lat || !provider.lng) {
     return null;
   }
 
@@ -8,16 +8,6 @@ function summarizeGeocodedProvider(provider) {
     lat: provider.lat,
     lng: provider.lng
   };
-}
-
-function pathExistsInObject(path, object) {
-  var current = object;
-  return path.every(segmentExists, true);
-  
-  function segmentExists(segment) {
-    current = current[segment];
-    return current;
-  }
 }
       
 module.exports = summarizeGeocodedProvider;

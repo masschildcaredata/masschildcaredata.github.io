@@ -1,6 +1,7 @@
 var fs = require('fs');
 var through = require('through2');
 var summarizeGeocodedProvider = require('./summarize-geocoded-provider');
+var ldj = require('ldjson-stream');
 
 var providerdatalocation = process.argv[2];
 
